@@ -1,8 +1,6 @@
 import time
 import pickle
 import socket
-
-
 import pygame
 
 from AgarLib import View, Player, PlayerCell
@@ -38,7 +36,8 @@ class GameConnection:
             self.player_id = pickle.loads(data)
             print(f'Received {self.player_id} from {self.address}')
 
-            view = View(self.screen, None, None)
+            # view = View(self.screen, None, None)
+            view = View(self.screen, None, Player('Smth', PlayerCell((0, 0), 10, (128, 128, 128))))
             while True:
                 keys = list()
                 for event in pygame.event.get():
