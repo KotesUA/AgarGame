@@ -16,6 +16,7 @@ class Model:
         self.bounds = bounds
         self.chunk_size = chunk_size
         self.chunks = list()
+
         for i in range((self.bounds[0] * 2) // chunk_size + 1):
             self.chunks.append(list())
             for j in range((self.bounds[1] * 2) // chunk_size + 1):
@@ -143,6 +144,7 @@ class Model:
         chunks = self._seen_chunks(pos)
         players = list()
         cells = list()
+
         for chunk in chunks:
             players.extend(chunk.players)
             cells.extend(chunk.cells)
@@ -169,4 +171,4 @@ class Model:
             pos = [chunk_pos[0] + diff[0], chunk_pos[1] + diff[1]]
             if 0 <= pos[0] < len(self.chunks) and 0 <= pos[1] < len(self.chunks[0]):
                 chunks.append(self.chunks[pos[0]][pos[1]])
-                return chunks
+        return chunks
