@@ -36,8 +36,8 @@ class GameConnection:
             self.player_id = pickle.loads(data)
             print(f'Received {self.player_id} from {self.address}')
 
-            # view = View(self.screen, None, None)
-            view = View(self.screen, None, Player('Smth', PlayerCell((0, 0), 10, (128, 128, 128))))
+            view = View(self.screen, None, None)
+            # view = View(self.screen, None, Player('Smth', PlayerCell((0, 0), 10, (128, 128, 128))))
             while True:
                 keys = list()
                 for event in pygame.event.get():
@@ -64,11 +64,11 @@ class GameConnection:
                     if pl.id == self.player_id:
                         view.player = pl
                         break
-                    if view.player is None:
-                        print("Player was killed!")
-                        return
+                if view.player is None:
+                    print("Player was killed!")
+                    return
                 view.redraw()
-            time.sleep(1/30)
+                time.sleep(1/30)
         except socket.timeout:
             print('Server not responding')
 
@@ -90,12 +90,11 @@ def start(width=1920, height=1080):
         for event in events:
             if event.type == pygame.QUIT:
                 exit()
-
-            if menu.get_menu().is_enabled():
-                menu.get_menu().draw(screen)
-            menu.get_menu().update(events)
-            pygame.display.flip()
-            clock.tick(30)
+        if menu.get_menu().is_enabled():
+            menu.get_menu().draw(screen)
+        menu.get_menu().update(events)
+        pygame.display.flip()
+        clock.tick(30)
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ class Player(Killer, Victim):
         for i, player_cell in enumerate(self.cells):
             player_cell.move()
 
-            for another_cell in self.cells[:i+1]:
+            for another_cell in self.cells[i+1:]:
                 if player_cell == another_cell or not player_cell.intersects(another_cell):
                     continue
                 if player_cell.cooldown == 0 and another_cell.cooldown == 0:
@@ -39,14 +39,15 @@ class Player(Killer, Victim):
         for cell in self.cells:
             if cell.can_shoot():
                 emitted.append(cell.shoot(angle))
-            return emitted
+        return emitted
 
     def split(self, angle):
         emitted = list()
         for cell in self.cells:
             if cell.can_split():
                 emitted.append(cell.split(angle))
-            return emitted
+        self.cells.extend(emitted)
+        return emitted
 
     def center(self):
         x = sum(cell.pos[0] for cell in self.cells)
@@ -60,7 +61,7 @@ class Player(Killer, Victim):
     def die(self, killer):
         for cell in self.cells:
             killed = killer.murder(cell)
-            return killed if killed else None
+        return killed if killed else None
 
     def murder(self, victim):
         for cell in self.cells:
@@ -68,7 +69,7 @@ class Player(Killer, Victim):
             if killed:
                 cell.eat(killed)
                 return killed
-            return None
+        return None
 
     def reset(self):
         self.cells = self.cells[:1]

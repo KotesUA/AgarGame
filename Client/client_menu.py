@@ -12,9 +12,9 @@ class ClientMenu:
         self.theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_ADAPTIVE
         self.theme.widget_selection_effect = pygame_menu.widgets.NoneSelection()
 
-        self.start_menu = pygame_menu.menu.Menu(theme=self.theme,height = self.height,width = self.width,onclose = pygame_menu.events.RESET,title='Start')
+        self.start_menu = pygame_menu.menu.Menu(theme=self.theme, height= self.height, width=self.width, onclose=pygame_menu.events.RESET, title='Start')
 
-        self.update_menu(lambda*args:None)
+        self.update_menu(lambda *args: None)
 
     def update_menu(self, connect_callback):
         self.start_menu.clear()

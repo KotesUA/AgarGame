@@ -2,11 +2,6 @@ import math
 import time
 import pygame
 
-from .player import Player
-from .model import Model
-from .player_cell import PlayerCell
-from .cell import Cell
-
 
 class Camera(object):
     def __init__(self, x, y, width, height):
@@ -16,7 +11,7 @@ class Camera(object):
 
     def set_center(self, pos):
         self.x = pos[0] - self.width / 2
-        self.y = pos[1] - self.height / 2
+        self.y = pos[1] + self.height / 2
 
     def adjust(self, pos):
         return pos[0] * self.scale - self.x, self.y - pos[1] * self.scale
@@ -41,12 +36,12 @@ class View:
 
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.surface = pygame.Surface((1, 1), pygame.SRCALPHA)
-        self.surface.fill(self.LIGHT_GRAY)
+        self.surface.fill(View.LIGHT_GRAY)
         self.font = pygame.font.Font(pygame.font.get_default_font(), 20)
 
     def redraw(self):
         self.camera.set_center(self.player.center())
-        self.screen.fill(self.BLACK)
+        self.screen.fill(View.BLACK)
         self.draw_grid()
 
         for cell in self.model.cells:

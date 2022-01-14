@@ -15,7 +15,7 @@ class PlayerCell(Cell, Killer):
     MIN_SPLIT = 100
 
     def __init__(self, pos, rad, col, angle=0, speed=0):
-        super().__init__(pos, rad, col, angle, speed)
+        super(PlayerCell, self).__init__(pos, rad, col)
         self.cooldown = self.SPLIT_COOLDOWN
         self.pool = 0
 
@@ -50,6 +50,7 @@ class PlayerCell(Cell, Killer):
 
     def eat(self, victim):
         self.pool += victim.area()
+        self.add_area(self.eat_pool())
 
     def can_emit(self,rad):
         return self.rad >= rad
