@@ -128,6 +128,7 @@ class Model:
 
     def add_player(self, player):
         self._pos_to_chunk(player.center()).players.append(player)
+        print(f'added player {player}')
 
     def add_cell(self, cell):
         self._pos_to_chunk(cell.pos).cells.append(cell)
