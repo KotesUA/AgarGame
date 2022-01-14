@@ -40,7 +40,7 @@ class PlayerCell(Cell, Killer):
     def remove_area(self, area):
         self.rad = math.sqrt((super().area() + area) / math.pi)
 
-    def eat_pool(self, lim = 0.1):
+    def eat_pool(self, lim=0.1):
         if self.pool > 0:
             area = self.pool*lim
             self.pool *= 1 - lim
@@ -61,22 +61,22 @@ class PlayerCell(Cell, Killer):
     def can_split(self):
         return self.can_emit(self.MIN_SPLIT)
 
-    def emit(self, angle,speed,rad, ObjClass):
-        obj = ObjClass([0,0],rad,self.col, angle,speed)
+    def emit(self, angle, speed, rad, ObjClass):
+        obj = ObjClass([0, 0], rad, self.col, angle, speed)
         self.remove_area(obj.area())
         dist = polar_to_cartesian(angle, self.rad + rad)
-        obj.pos = list(map(add, self.pos,dist))
+        obj.pos = list(map(add, self.pos, dist))
         return obj
 
     def shoot(self, angle):
-        return self.emit(angle, self.SHOOT_SPEED, self.SHOT_SIZE, Cell)
+        return self.emit(angle, self.SHOT_SPEED, self.SHOT_SIZE, Cell)
 
-    def split(self,angle):
+    def split(self, angle):
         return self.emit(angle, self.SPLIT_SPEED, self.rad/2, PlayerCell)
 
     def run_from(self, cell):
-        v = list(map(sub,self.pos, cell.pos))
+        v = list(map(sub, self.pos, cell.pos))
         angle = cartesian_to_polar(*v)[0]
         intersection = self.rad + cell.rad - self.distance_to(cell)
         dxy = polar_to_cartesian(angle, intersection)
-        self.pos = list(map(add,self.pos, dxy))
+        self.pos = list(map(add, self.pos, dxy))

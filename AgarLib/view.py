@@ -71,9 +71,8 @@ class View:
             self.draw_text(self.screen, player.nick, self.camera.adjust(cell.pos), align_center=True)
 
     def draw_hud(self, padding):
-        # score = f'Score: {self.player.score()}'
-        score = f'Score: 10'
-        self.draw_item((15, self.height - 30 - 2 * padding[1]), score, 20, padding)
+        score = f'Score: {self.player.score()}'
+        self.draw_item((15, self.height - 30 - 2 * padding[1]), (score,), 20, padding)
         lines = list()
         lines.append('Top players: ')
         top = sorted(self.model.players, key=lambda cell: cell.score(), reverse=True)[:10]

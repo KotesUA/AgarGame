@@ -3,7 +3,7 @@ import random
 from operator import add, sub
 
 
-def polar_to_cartesian(angle, val):
+def polar_to_cartesian(angle: object, val: object) -> object:
     return [val * math.cos(angle), val * math.sin(angle)]
 
 

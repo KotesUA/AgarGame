@@ -3,8 +3,8 @@ import pickle
 import socket
 import pygame
 
-from AgarLib import View, Player, PlayerCell
-from Client.client_menu import ClientMenu
+from AgarLib import View
+from .client_menu import ClientMenu
 
 
 class GameConnection:
@@ -37,7 +37,6 @@ class GameConnection:
             print(f'Received {self.player_id} from {self.address}')
 
             view = View(self.screen, None, None)
-            # view = View(self.screen, None, Player('Smth', PlayerCell((0, 0), 10, (128, 128, 128))))
             while True:
                 keys = list()
                 for event in pygame.event.get():
@@ -60,13 +59,16 @@ class GameConnection:
 
                 view.player = None
                 view.model = msg
+
                 for pl in view.model.players:
                     if pl.id == self.player_id:
                         view.player = pl
                         break
+
                 if view.player is None:
                     print("Player was killed!")
                     return
+
                 view.redraw()
                 time.sleep(1/30)
         except socket.timeout:
