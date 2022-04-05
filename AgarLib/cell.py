@@ -1,4 +1,5 @@
 import random
+import time
 from operator import add
 
 from AgarLib.instruments import polar_to_cartesian, cartesian_to_polar, random_pos, random_color
@@ -15,11 +16,13 @@ class Cell(Circle, Victim):
         self.col = col
         self.angle = angle
         self.speed = speed
+        self.invulnerable = False
+        self.vulnerable_time = 0
 
     def __repr__(self):
         return f'{self.__class__.__name__} | pos={self.pos} | rad = {self.rad}'
 
-    def update_velocity(self, angle, speed):
+    def update_velocity(self, angle: float, speed: float):
         v1 = polar_to_cartesian(angle, speed)
         v2 = polar_to_cartesian(self.angle, self.speed)
 

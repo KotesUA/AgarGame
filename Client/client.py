@@ -3,13 +3,15 @@ import pickle
 import socket
 import pygame
 
-from AgarLib import View
-from .client_menu import ClientMenu
+from AgarLib import View, Player, PlayerCell
+from Client.client_menu import ClientMenu
 
 
 class GameConnection:
-    def __init__(self, screen):
+    def __init__(self, screen, menu, clock):
         self.screen = screen
+        self.menu = menu
+        self.clock = clock
         self.player_id = None
         self.is_in_lobby = False
         self.host = None
@@ -35,8 +37,8 @@ class GameConnection:
             data = sock.recv(2**13)
             self.player_id = pickle.loads(data)
             print(f'Received {self.player_id} from {self.address}')
-
             view = View(self.screen, None, None)
+            # view = View(self.screen, None, Player('Smth', PlayerCell((0, 0), 10, (128, 128, 128))))
             while True:
                 keys = list()
                 for event in pygame.event.get():
@@ -56,21 +58,28 @@ class GameConnection:
 
                 data = sock.recv(2**16)
                 msg = pickle.loads(data)
+                view.leaderboard = msg.get('leader_board', [])
 
-                view.player = None
-                view.model = msg
-
-                for pl in view.model.players:
-                    if pl.id == self.player_id:
-                        view.player = pl
-                        break
-
-                if view.player is None:
-                    print("Player was killed!")
+                if msg.get('model'):
+                    view.player = None
+                    view.model = msg['model']
+                    for pl in view.model.players:
+                        if pl.id == self.player_id:
+                            view.player = pl
+                            break
+                    if view.player is None:
+                        print("Player was killed!")
+                        return
+                    view.redraw()
+                else:
+                    self.menu.score_board(msg['leader_board'])
+                    self.menu.get_menu().draw(self.screen)
+                    self.menu.get_menu().update(pygame.event.get())
+                    pygame.display.flip()
+                    view.redraw()
                     return
+                self.clock.tick(30)
 
-                view.redraw()
-                time.sleep(1/30)
         except socket.timeout:
             print('Server not responding')
 
@@ -82,10 +91,10 @@ def start(width=1920, height=1080):
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption('agar.io clone by @kotes, @andreeewleonov, @FBISpy')
 
-    connection = GameConnection(screen)
-    menu = ClientMenu(width, height)
-    menu.update_menu(connection.connect)
     clock = pygame.time.Clock()
+    menu = ClientMenu(width, height)
+    connection = GameConnection(screen, menu, clock)
+    menu.update_menu(connection.connect)
 
     while True:
         events = pygame.event.get()

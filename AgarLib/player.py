@@ -1,3 +1,7 @@
+import time
+from typing import List, Tuple
+
+import AgarLib
 from AgarLib.instruments import get_velocity
 from AgarLib.interfaces import Killer, Victim
 from AgarLib.player_cell import PlayerCell
@@ -7,10 +11,13 @@ class Player(Killer, Victim):
     START_SIZE = 40
     LAST_ID = -1
 
-    def __init__(self, nick, player_cell):
-        self.id = self.create_id()
-        self.nick = nick
-        self.cells = [player_cell]
+    def __init__(self, nick: str, player_cell: PlayerCell, life_time: int = 300):
+        self.id: int = self.create_id()
+        self.nick: str = nick
+        self.cells: List[PlayerCell] = [player_cell]
+        self.alive: bool = True
+        self.end_time: float = time.time() + life_time
+        self.life_time: int = life_time
 
     def __repr__(self):
         return f'{self.__class__.__name__} || nick = {self.nick} || id = {self.id}'
@@ -28,20 +35,20 @@ class Player(Killer, Victim):
                 else:
                     player_cell.run_from(another_cell)
 
-    def update_velocity(self, angle, speed):
+    def update_velocity(self, angle: float, speed: float):
         center = self.center()
         for cell in self.cells:
             rel_velocity = get_velocity(center, angle, speed, cell.pos)
             cell.update_velocity(*rel_velocity)
 
-    def shoot(self, angle):
+    def shoot(self, angle: float) -> List['AgarLib.Cell']:
         emitted = list()
         for cell in self.cells:
             if cell.can_shoot():
                 emitted.append(cell.shoot(angle))
         return emitted
 
-    def split(self, angle):
+    def split(self, angle: float):
         emitted = list()
         for cell in self.cells:
             if cell.can_split():
@@ -49,26 +56,29 @@ class Player(Killer, Victim):
         self.cells.extend(emitted)
         return emitted
 
-    def center(self):
-        x = sum(cell.pos[0] for cell in self.cells)
-        y = sum(cell.pos[1] for cell in self.cells)
-        center = [x/len(self.cells), y/len(self.cells)]
+    def center(self) -> Tuple[float, float]:
+        x: float = sum(cell.pos[0] for cell in self.cells)
+        y: float = sum(cell.pos[1] for cell in self.cells)
+        center = (x/len(self.cells), y/len(self.cells))
         return center
 
     def score(self):
-        return sum(cell.rad for cell in self.cells)
+        return round(sum(cell.rad for cell in self.cells), 2)
 
     def die(self, killer):
         for cell in self.cells:
             killed = killer.murder(cell)
         return killed if killed else None
 
-    def murder(self, victim):
+    def murder(self, victim: 'AgarLib.Cell'):
         for cell in self.cells:
-            killed = victim.die(cell)
-            if killed:
-                cell.eat(killed)
-                return killed
+            if not victim.vulnerable_time:
+                killed = victim.die(cell)
+                if killed:
+                    cell.eat(killed)
+                    return killed
+            elif victim.vulnerable_time < time.time():
+                victim.vulnerable_time = 0
         return None
 
     def reset(self):
@@ -77,12 +87,12 @@ class Player(Killer, Victim):
         self.cells[0].rad = self.START_SIZE
 
     @classmethod
-    def create_id(cls):
+    def create_id(cls) -> int:
         cls.LAST_ID += 1
         return cls.LAST_ID
 
     @classmethod
-    def spawn(cls, nick, bounds):
+    def spawn(cls, nick, bounds) -> 'Player':
         player_cell = PlayerCell.random_cell(bounds)
         player_cell.rad = cls.START_SIZE
         return cls(nick, player_cell)

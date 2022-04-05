@@ -1,7 +1,9 @@
 import logging
 import time
 import itertools
+from typing import Dict, Union, Tuple, List
 
+import AgarLib
 from AgarLib.cell import Cell
 from AgarLib.chunk import Chunk
 
@@ -10,12 +12,13 @@ class Model:
     ROUND_TIME = 600
 
     def __init__(self, players=None, cells=None, bounds=(5000, 5000), chunk_size=500):
-        players = list() if players is None else players
+        players: List['AgarLib.Player'] = list() if players is None else players
         cells = list() if cells is None else cells
+        self.leaderboard: Dict[int, Dict[str, Union[str, int]]] = {}
 
-        self.bounds = bounds
-        self.chunk_size = chunk_size
-        self.chunks = list()
+        self.bounds: Tuple[int, int] = bounds
+        self.chunk_size: int = chunk_size
+        self.chunks: List[List[Chunk]] = list()
 
         for i in range((self.bounds[0] * 2) // chunk_size + 1):
             self.chunks.append(list())
@@ -31,7 +34,7 @@ class Model:
         self.round_start = time.time()
 
     @property
-    def cells(self):
+    def cells(self) -> List[Cell]:
         cells = list()
         for line in self.chunks:
             for chunk in line:
@@ -39,23 +42,23 @@ class Model:
         return cells
 
     @property
-    def players(self):
+    def players(self) -> List['AgarLib.Player']:
         players = list()
         for line in self.chunks:
             for chunk in line:
                 players.extend(chunk.players)
         return players
 
-    def update_velocity(self, player, angle, speed):
+    def update_velocity(self, player: 'AgarLib.Player', angle: float, speed: float):
         player.update_velocity(angle, speed)
 
-    def shoot(self, player, angle):
+    def shoot(self, player: 'AgarLib.Player', angle: float):
         emitted_cells = player.shoot(angle)
         for cell in emitted_cells:
             self.add_cell(cell)
         logging.debug(f'{player} shot') if emitted_cells else logging.debug(f'{player} tried to shoot, but he cant')
 
-    def split(self, player, angle):
+    def split(self, player: 'AgarLib.Player', angle: float):
         self.remove_player(player)
         new_cells = player.split(angle)
         self.add_player(player)
@@ -109,15 +112,15 @@ class Model:
                         logging.debug(f'{player}ate {another_player}')
                         self.remove_player(another_player)
                         seen_players.remove(another_player)
-                        another_player.remove_part(killed)
+                        another_player.die(killed)
                     else:
                         logging.debug(f'{player} ate {another_player} part {killed}')
 
-    def spawn_cells(self, amount):
+    def spawn_cells(self, amount: int):
         for _ in range(amount):
             self.add_cell(Cell.random_cell(self.bounds))
 
-    def bound_cell(self, cell):
+    def bound_cell(self, cell: Cell):
         cell.pos[0] = self.bounds[0] if cell.pos[0] > self.bounds[0] else cell.pos[0]
         cell.pos[0] = -self.bounds[0] if cell.pos[0] < -self.bounds[0] else cell.pos[0]
         cell.pos[1] = self.bounds[1] if cell.pos[1] > self.bounds[1] else cell.pos[1]
@@ -127,20 +130,19 @@ class Model:
         for cell in player.cells:
             self.bound_cell(cell)
 
-    def add_player(self, player):
+    def add_player(self, player: 'AgarLib.Player'):
         self._pos_to_chunk(player.center()).players.append(player)
-        print(f'added player {player}')
 
-    def add_cell(self, cell):
+    def add_cell(self, cell: Cell):
         self._pos_to_chunk(cell.pos).cells.append(cell)
 
-    def remove_player(self, player):
+    def remove_player(self, player: 'AgarLib.Player'):
         self._pos_to_chunk(player.center()).players.remove(player)
 
-    def remove_cell(self, cell):
+    def remove_cell(self, cell: Cell):
         self._pos_to_chunk(cell.pos).cells.remove(cell)
 
-    def get_info(self, pos):
+    def get_info(self, pos: Tuple[float, float]) -> 'Model':
         chunks = self._seen_chunks(pos)
         players = list()
         cells = list()
@@ -157,14 +159,14 @@ class Model:
         for player in self.players:
             player.reset()
 
-    def _pos_to_chunk(self, pos):
+    def _pos_to_chunk(self, pos: Tuple[float, float]) -> Chunk:
         chunk_pos = self._chunk_pos(pos)
         return self.chunks[chunk_pos[0]][chunk_pos[1]]
 
-    def _chunk_pos(self, pos):
-        return [int((pos[0] + self.bounds[0]) // self.chunk_size), int((pos[1] + self.bounds[1]) // self.chunk_size)]
+    def _chunk_pos(self, pos: Tuple[float, float]) -> Tuple[int, int]:
+        return int((pos[0] + self.bounds[0]) // self.chunk_size), int((pos[1] + self.bounds[1]) // self.chunk_size)
 
-    def _seen_chunks(self, pos):
+    def _seen_chunks(self, pos: Tuple[float, float]) -> List[Chunk]:
         chunks = list()
         chunk_pos = self._chunk_pos(pos)
         for diff in itertools.product([-1, 0, 1], repeat=2):

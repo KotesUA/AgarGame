@@ -12,18 +12,34 @@ class ClientMenu:
         self.theme.title_bar_style = pygame_menu.widgets.MENUBAR_STYLE_ADAPTIVE
         self.theme.widget_selection_effect = pygame_menu.widgets.NoneSelection()
 
-        self.start_menu = pygame_menu.menu.Menu(theme=self.theme, height= self.height, width=self.width, onclose=pygame_menu.events.RESET, title='Start')
+        self.start_menu = pygame_menu.menu.Menu(
+            theme=self.theme, height=self.height, width=self.width, onclose=pygame_menu.events.RESET, title='Start'
+        )
 
         self.update_menu(lambda *args: None)
+        self.connection_callback = None
 
     def update_menu(self, connect_callback):
+        self.connection_callback = connect_callback
         self.start_menu.clear()
 
-        self.start_menu.add.text_input('Nickname: ',default='Cell',maxwidth=14,textinput_id='nick',input_underline='_')
-        self.start_menu.add.text_input('Server: ',default='localhost:9999',maxwidth=14,textinput_id='addr', input_underline='_')
+        self.start_menu.add.text_input(
+            'Nickname: ', default='Cell', maxwidth=14, textinput_id='nick', input_underline='_'
+        )
+        self.start_menu.add.text_input(
+            'Server: ', default='localhost:9999', maxwidth=14, textinput_id='addr', input_underline='_'
+        )
         self.start_menu.add.vertical_margin(ClientMenu.MENU_VERTICAL_MARGIN)
-        self.start_menu.add.button('Connect',partial(connect_callback,self.start_menu.get_input_data()))
-        self.start_menu.add.button('Exit',pygame_menu.events.EXIT)
+        self.start_menu.add.button('Connect', partial(connect_callback, self.start_menu.get_input_data()))
+        self.start_menu.add.button('Exit', pygame_menu.events.EXIT)
 
     def get_menu(self):
         return self.start_menu
+
+    def score_board(self, score_board):
+        self.start_menu.clear()
+        self.start_menu.add.label('Score Board')
+        for pos, player in enumerate(score_board, 1):
+            self.start_menu.add.label(f'{pos}. {player["nick"]}: {player["score"]}')
+        self.start_menu.add.button('Back', partial(self.update_menu, self.connection_callback))
+

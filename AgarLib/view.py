@@ -24,10 +24,11 @@ class View:
     PADDING = 5
     EXPIRE = 10
 
-    def __init__(self, screen, model, player):
+    def __init__(self, screen, model, player, leaderboard=None):
         self.screen = screen
         self.width, self.height = self.screen.get_size()
         self.model = model
+        self.leaderboard = leaderboard or []
         self.player = player
 
         self.camera = Camera(0, 0, self.width, self.height)
@@ -71,14 +72,13 @@ class View:
             self.draw_text(self.screen, player.nick, self.camera.adjust(cell.pos), align_center=True)
 
     def draw_hud(self, padding):
-        score = f'Score: {self.player.score()}'
-        self.draw_item((15, self.height - 30 - 2 * padding[1]), (score,), 20, padding)
         lines = list()
+        lines.append(f'Time: {round(self.player.end_time - time.time(), 2)}')
+        lines.append('')
         lines.append('Top players: ')
-        top = sorted(self.model.players, key=lambda cell: cell.score(), reverse=True)[:10]
-        for i, player in enumerate(top):
-            lines.append(f'{i+1}. {player.nick}')
-        self.draw_item((self.width - 150, 15), lines, 10, padding)
+        for i, player in enumerate(self.leaderboard, 1):
+            lines.append(f'{">" if player["you"] else ""}{i:02}. {player["nick"]}: {player["score"]:05.2f}')
+        self.draw_item((self.width - 200, 15), lines, 10, padding)
 
     def draw_item(self, pos, lines, maxlength, padding):
         maxlength = max(map(lambda line: self.font.size(line)[0], lines))
@@ -116,15 +116,13 @@ class View:
             self.model.update_velocity(self.player, *(self.mouse_polar()))
             self.model.update()
             self.redraw()
-            self.clock.tick(30)
+            self.clock.tick(5)
 
     def mouse_polar(self):
         x, y = pygame.mouse.get_pos()
-
         x -= self.width / 2
         y = self.height / 2 - y
-
-        angle = math.atan2(x, y)
+        angle = math.atan2(y, x)
         speed = math.sqrt(x**2 + y**2)
 
         speed_bound = 0.8 * min(self.width / 2, self.height / 2)
